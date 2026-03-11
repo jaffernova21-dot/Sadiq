@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elevate | Premium Social Growth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Inter:wght@300;400;500;600&display=swap');
+
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --tape-yellow: #fbbf24;
+            --tape-yellow-dark: #d97706;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Cinzel', serif;
+            letter-spacing: -0.02em;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding-top: 4rem;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.02),
+                0 2px 4px -1px rgba(0, 0, 0, 0.02),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        }
+
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(60px);
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: breathe 15s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.1) translate(20px, -20px); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ffffff;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e5e5e5;
+            border-radius: 3px;
+        }
+
+        .perspective-container {
+            perspective: 2000px;
+        }
+
+        /* Anti-Gravity Floating Card */
+        .card-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            animation: antiGravityFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes antiGravityFloat {
+            0%, 100% {
+                transform: translateY(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+            }
+            25% {
+                transform: translateY(-15px) rotateX(2deg) rotateY(-3deg) rotateZ(1deg);
+            }
+            50% {
+                transform: translateY(-8px) rotateX(-1deg) rotateY(2deg) rotateZ(-1deg);
+            }
+            75% {
+                transform: translateY(-20px) rotateX(1deg) rotateY(-2deg) rotateZ(2deg);
+            }
+        }
+
+        /* Yellow Tape Effect - Left Corner Only */
+        .tape-left {
+            position: absolute;
+            top: -15px;
+            left: -10px;
+            width: 80px;
+            height: 35px;
+            background: linear-gradient(135deg, var(--tape-yellow) 0%, var(--tape-yellow-dark) 100%);
+            transform: rotate(-15deg);
+            z-index: 30;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            opacity: 0.9;
+        }
+
+        .tape-left::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 8px,
+                rgba(255,255,255,0.2) 8px,
+                rgba(255,255,255,0.2) 10px
+            );
+        }
+
+        .tape-left::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 5px;
+            width: 70px;
+            height: 6px;
+            background: rgba(0,0,0,0.1);
+            transform: rotate(15deg);
+        }
+
+        /* Floating Shadow */
+        .card-shadow {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 20px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            animation: shadowPulse 6s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes shadowPulse {
+            0%, 100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.3;
+            }
+            25% {
+                transform: translateX(-50%) scale(0.9);
+                opacity: 0.2;
+            }
+            50% {
+                transform: translateX(-50%) scale(0.95);
+                opacity: 0.25;
+            }
+            75% {
+                transform: translateX(-50%) scale(0.85);
+                opacity: 0.15;
+            }
+        }
+
+        /* Floating Particles around card */
+        .particle {
+            position: absolute;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 8s ease-in-out infinite;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-30px) rotate(180deg);
+                opacity: 0.3;
+            }
+        }
+
+        .btn-primary {
+            background: #111;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #e5e5e5;
+            color: #111;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            border-color: #111;
+            background: #fff;
+        }
+
+        /* Instagram Section Styles */
+        .instagram-gradient {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+
+        .instagram-card {
+            transition: all 0.4s ease;
+        }
+
+        .instagram-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .ig-icon {
+            width: 48px;
+            height: 48px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Background -->
+    <div id="canvas-container"></div>
+
+    <!-- Ambient Background Orbs -->
+    <div class="orb w-96 h-96 bg-gray-100 top-0 left-0"></div>
+    <div class="orb w-80 h-80 bg-gray-50 bottom-0 right-0" style="animation-delay: -5s;"></div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            
+            <!-- Text Content -->
+            <div class="order-2 lg:order-1 space-y-8 scroll-reveal">
+                <div class="inline-block px-3 py-1 border border-gray-200 rounded-full text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">
+                    Premium Social Growth
+                </div>
+                <h1 class="text-5xl lg:text-7xl font-bold leading-[1.1] text-gray-900">
+                    Defy <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 via-gray-600 to-gray-900">Gravity.</span>
+                </h1>
+                <p class="text-lg text-gray-600 max-w-lg leading-relaxed font-light">
+                    Elevate your digital presence with authority. We provide the gravitational pull your profile needs to attract organic growth and genuine influence.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button class="btn-primary px-8 py-4 rounded-full font-medium text-sm tracking-wide">
+                        Explore Packages
+                    </button>
+                    <button class="btn-secondary px-8 py-4 rounded-full font-medium text-sm tracking-wide">
+                        How It Works
+                    </button>
+                </div>
+                
+                <div class="pt-12 flex items-center gap-8 text-gray-400">
+                    <div class="flex -space-x-2">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 border-2 border-white"></div>
+                        <div class="w-8 h-8 rounded-full bg-gray-300 border-2 border-white"></div>
+                        <div class="w-8 h-8 rounded-full bg-gray-400 border-2 border-white"></div>
+                    </div>
+                    <span class="text-sm font-medium">Trusted by 10,000+ creators</span>
+                </div>
+            </div>
+            
+            <!-- 3D Anti-Gravity Image Frame with Yellow Tape -->
+            <div class="order-1 lg:order-2 flex justify-center perspective-container scroll-reveal" style="transition-delay: 100ms;">
+                <div class="relative w-full max-w-md">
+                    <!-- Floating Particles -->
+                    <div class="particle w-3 h-3 top-10 -left-8" style="animation-delay: 0s;"></div>
+                    <div class="particle w-2 h-2 top-20 -right-6" style="animation-delay: -2s;"></div>
+                    <div class="particle w-4 h-4 bottom-20 -left-12" style="animation-delay: -4s;"></div>
+                    <div class="particle w-2 h-2 bottom-10 -right-10" style="animation-delay: -6s;"></div>
+                    
+                    <!-- 3D Card -->
+                    <div id="hero-card" class="card-3d relative w-full aspect-[4/5] cursor-pointer group">
+                        <!-- Yellow Tape - Left Corner Only -->
+                        <div class="tape-left"></div>
+                        
+                        <!-- Card Content -->
+                        <div class="absolute inset-0 bg-white rounded-sm shadow-2xl overflow-hidden border border-gray-100">
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 z-10"></div>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/GodfreyKneller-IsaacNewton-1689.jpg" 
+                                 alt="Portrait" 
+                                 class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
+                            
+                            <div class="absolute bottom-0 left-0 p-8 z-20 text-white">
+                                <h3 class="text-3xl font-serif mb-1">Isaac Newton</h3>
+                                <p class="text-gray-300 text-sm font-light tracking-wide">The Law of Attraction</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Decorative Frame Elements -->
+                        <div class="absolute -inset-2 border border-gray-200/50 rounded-sm -z-10 transform translate-x-2 translate-y-2"></div>
+                        <div class="absolute -inset-4 border border-gray-100/30 rounded-sm -z-20 transform translate-x-4 translate-y-4"></div>
+                    </div>
+                    
+                    <!-- Floating Shadow -->
+                    <div class="card-shadow"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce opacity-50">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-12 border-y border-gray-100 bg-white/50 backdrop-blur-sm">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="scroll-reveal">
+                    <div class="text-3xl font-bold font-serif text-gray-900">24h</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Delivery Time</div>
+                </div>
+                <div class="scroll-reveal" style="transition-delay: 100ms;">
+                    <div class="text-3xl font-bold font-serif text-gray-900">100%</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Secure</div>
+                </div>
+                <div class="scroll-reveal" style="transition-delay: 200ms;">
+                    <div class="text-3xl font-bold font-serif text-gray-900">24/7</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Support</div>
+                </div>
+                <div class="scroll-reveal" style="transition-delay: 300ms;">
+                    <div class="text-3xl font-bold font-serif text-gray-900">50k+</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Clients</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-32 relative">
+        <div class="container mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-20 scroll-reveal">
+                <h2 class="text-4xl lg:text-5xl font-bold mb-6 text-gray-900">Select Your Altitude</h2>
+                <p class="text-gray-500 text-lg">Choose the package that lifts your profile highest. Instant activation on all plans.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Plan 1 -->
+                <div class="glass-panel p-8 rounded-2xl hover:shadow-xl transition-all duration-500 scroll-reveal border border-gray-100 group">
+                    <div class="mb-6">
+                        <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Starter</span>
+                        <div class="text-4xl font-bold font-serif mt-2 text-gray-900">$19</div>
+                    </div>
+                    <ul class="space-y-4 mb-8 text-gray-600 text-sm">
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            1,000 Premium Followers
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            High Quality Profiles
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Instant Start
+                        </li>
+                    </ul>
+                    <button class="w-full py-3 rounded-lg border border-gray-200 text-gray-900 font-medium text-sm hover:bg-gray-900 hover:text-white transition-colors">
+                        Choose Plan
+                    </button>
+                </div>
+
+                <!-- Plan 2 (Featured) -->
+                <div class="glass-panel p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 scroll-reveal border border-gray-900 relative transform md:-translate-y-4 bg-white z-10">
+                    <div class="absolute top-0 right-0 bg-gray-900 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg uppercase tracking-wider">
+                        Most Popular
+                    </div>
+                    <div class="mb-6">
+                        <span class="text-gray-900 font-medium text-sm uppercase tracking-wider">Professional</span>
+                        <div class="text-5xl font-bold font-serif mt-2 text-gray-900">$49</div>
+                    </div>
+                    <ul class="space-y-4 mb-8 text-gray-600 text-sm">
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            5,000 Premium Followers
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Priority Support
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            30-Day Refill Guarantee
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            No Password Required
+                        </li>
+                    </ul>
+                    <button class="w-full py-3 rounded-lg bg-gray-900 text-white font-medium text-sm hover:bg-gray-800 transition-colors shadow-lg">
+                        Choose Plan
+                    </button>
+                </div>
+
+                <!-- Plan 3 -->
+                <div class="glass-panel p-8 rounded-2xl hover:shadow-xl transition-all duration-500 scroll-reveal border border-gray-100 group">
+                    <div class="mb-6">
+                        <span class="text-gray-400 font-medium text-sm uppercase tracking-wider">Influencer</span>
+                        <div class="text-4xl font-bold font-serif mt-2 text-gray-900">$99</div>
+                    </div>
+                    <ul class="space-y-4 mb-8 text-gray-600 text-sm">
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            15,000 Premium Followers
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            VIP Account Manager
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Lifetime Refill
+                        </li>
+                    </ul>
+                    <button class="w-full py-3 rounded-lg border border-gray-200 text-gray-900 font-medium text-sm hover:bg-gray-900 hover:text-white transition-colors">
+                        Choose Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features / About Section -->
+    <section class="py-24 bg-gray-50 relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div class="scroll-reveal order-2 lg:order-1">
+                    <div class="relative">
+                        <div class="aspect-square bg-white rounded-full overflow-hidden shadow-2xl relative z-10 border-8 border-white">
+                            <img src="https://image.qwenlm.ai/public_source/b4691cee-e1f6-4303-85c3-aad21886f371/1e7f2f9af-8704-485a-90bc-0c592c4a4a1e.png" alt="Abstract Art" class="w-full h-full object-cover opacity-90">
+                        </div>
+                        <div class="absolute inset-0 border border-gray-200 rounded-full -z-0 animate-[spin_20s_linear_infinite]"></div>
+                        <div class="absolute inset-12 border border-gray-100 rounded-full -z-0"></div>
+                    </div>
+                </div>
+                
+                <div class="scroll-reveal order-1 lg:order-2 space-y-8">
+                    <h2 class="text-4xl lg:text-5xl font-bold text-gray-900">The Science of <br>Influence</h2>
+                    <p class="text-gray-600 text-lg leading-relaxed">
+                        Just as gravity governs the universe, social proof governs the digital world. We don't just sell numbers; we provide the gravitational pull your profile needs.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                        <div class="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                            <h4 class="font-bold text-gray-900 mb-2">Organic Look</h4>
+                            <p class="text-sm text-gray-500">Our followers look and act like real users to ensure account safety.</p>
+                        </div>
+                        <div class="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                            <h4 class="font-bold text-gray-900 mb-2">Instant Boost</h4>
+                            <p class="text-sm text-gray-500">See results immediately. Our system starts delivering within minutes.</p>
+                        </div>
+                    </div>
+                    <div class="pt-8 border-t border-gray-200">
+                        <p class="font-serif italic text-gray-500 text-lg">"If I have seen further, it is by standing on the shoulders of giants."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instagram Section -->
+    <section class="py-24 bg-white relative">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 scroll-reveal">
+                <div class="inline-flex items-center gap-3 mb-6">
+                    <svg class="w-10 h-10 instagram-gradient rounded-xl p-2" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                    <h2 class="text-4xl lg:text-5xl font-bold text-gray-900">Follow Us on Instagram</h2>
+                </div>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto">Join our community of creators and influencers. Get daily tips, success stories, and exclusive offers.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+                <!-- Instagram Post 1 -->
+                <div class="instagram-card scroll-reveal aspect-square bg-gray-100 rounded-2xl overflow-hidden relative cursor-pointer group">
+                    <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=400&fit=crop" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
+                </div>
+
+                <!-- Instagram Post 2 -->
+                <div class="instagram-card scroll-reveal aspect-square bg-gray-100 rounded-2xl overflow-hidden relative cursor-pointer group" style="transition-delay: 100ms;">
+                    <img src="https://images.unsplash.com/photo-1611262588024-d12430b98920?w=400&h=400&fit=crop" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
+                </div>
+
+                <!-- Instagram Post 3 -->
+                <div class="instagram-card scroll-reveal aspect-square bg-gray-100 rounded-2xl overflow-hidden relative cursor-pointer group" style="transition-delay: 200ms;">
+                    <img src="https://images.unsplash.com/photo-1566417713204-3547ef380c18?w=400&h=400&fit=crop" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
+                </div>
+
+                <!-- Instagram Post 4 -->
+                <div class="instagram-card scroll-reveal aspect-square bg-gray-100 rounded-2xl overflow-hidden relative cursor-pointer group" style="transition-delay: 300ms;">
+                    <img src="https://images.unsplash.com/photo-1611605698335-8b1569810432?w=400&h=400&fit=crop" alt="Instagram Post" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Follow Button -->
+            <div class="text-center mt-12 scroll-reveal">
+                <a href="https://instagram.com" target="_blank" class="inline-flex items-center gap-3 instagram-gradient text-white px-8 py-4 rounded-full font-bold text-sm tracking-wide hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    Follow @Elevate
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-16">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="text-center md:text-left">
+                    <h2 class="text-2xl font-bold font-serif tracking-tight text-white">ELEVATE</h2>
+                    <p class="text-gray-400 text-sm mt-2">© 2023 Premium Services. All rights reserved.</p>
+                </div>
+                <div class="flex space-x-8">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm font-medium">Terms</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm font-medium">Privacy</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm font-medium">Support</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. Three.js Setup for Antigravity Background ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0xffffff, 0.0015);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 0.8);
+        pointLight.position.set(20, 20, 20);
+        scene.add(pointLight);
+
+        // Create Floating Shapes
+        const geometry = new THREE.IcosahedronGeometry(1, 0);
+        const material = new THREE.MeshPhongMaterial({ 
+            color: 0xf5f5f5,
+            shininess: 60,
+            flatShading: true,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const shapes = [];
+        const shapeCount = 50;
+
+        for (let i = 0; i < shapeCount; i++) {
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            mesh.position.x = (Math.random() - 0.5) * 60;
+            mesh.position.y = (Math.random() - 0.5) * 60;
+            mesh.position.z = (Math.random() - 0.5) * 30 - 10;
+            
+            mesh.rotation.x = Math.random() * Math.PI;
+            mesh.rotation.y = Math.random() * Math.PI;
+
+            const scale = Math.random() * 0.8 + 0.2;
+            mesh.scale.set(scale, scale, scale);
+
+            mesh.userData = {
+                velocity: {
+                    x: (Math.random() - 0.5) * 0.03,
+                    y: (Math.random() - 0.5) * 0.03,
+                    z: (Math.random() - 0.5) * 0.03
+                },
+                rotationSpeed: {
+                    x: (Math.random() - 0.5) * 0.005,
+                    y: (Math.random() - 0.5) * 0.005
+                }
+            };
+
+            scene.add(mesh);
+            shapes.push(mesh);
+        }
+
+        camera.position.z = 20;
+
+        // Mouse interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX) * 0.001;
+            mouseY = (event.clientY - windowHalfY) * 0.001;
+        });
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetX = mouseX * 2;
+            targetY = mouseY * 2;
+
+            scene.rotation.y += 0.05 * (targetX - scene.rotation.y);
+            scene.rotation.x += 0.05 * (targetY - scene.rotation.x);
+
+            shapes.forEach(shape => {
+                shape.position.x += shape.userData.velocity.x;
+                shape.position.y += shape.userData.velocity.y;
+                shape.position.z += shape.userData.velocity.z;
+
+                shape.rotation.x += shape.userData.rotationSpeed.x;
+                shape.rotation.y += shape.userData.rotationSpeed.y;
+
+                const limit = 30;
+                if (shape.position.x > limit) shape.position.x = -limit;
+                if (shape.position.x < -limit) shape.position.x = limit;
+                if (shape.position.y > limit) shape.position.y = -limit;
+                if (shape.position.y < -limit) shape.position.y = limit;
+                if (shape.position.z > 10) shape.position.z = -40;
+                if (shape.position.z < -40) shape.position.z = 10;
+            });
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+
+        // --- 2. GSAP Scroll Animations ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate Hero Card on Scroll
+        const heroCard = document.getElementById('hero-card');
+        
+        gsap.to(heroCard, {
+            scrollTrigger: {
+                trigger: ".hero-section",
+                start: "top top",
+                end: "bottom top",
+                scrub: 1
+            },
+            rotationY: 30,
+            rotationX: 10,
+            z: -200,
+            opacity: 0,
+            ease: "power1.inOut"
+        });
+
+        // Slide Up Elements
+        const scrollElements = document.querySelectorAll('.scroll-reveal');
+        
+        scrollElements.forEach((el) => {
+            gsap.to(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 85%", 
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 1,
+                y: 0,
+                duration: 1.2,
+                ease: "power3.out"
+            });
+        });
+
+        // Parallax for About Section Image
+        gsap.to(".relative img", {
+            scrollTrigger: {
+                trigger: ".relative",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true
+            },
+            y: 30,
+            scale: 1.1
+        });
+
+        // 3D Card Mouse Move Effect
+        const cardContainer = document.querySelector('.perspective-container');
+        const card = document.getElementById('hero-card');
+
+        if(cardContainer && card) {
+            cardContainer.addEventListener('mousemove', (e) => {
+                const xAxis = (window.innerWidth / 2 - e.pageX) / 30;
+                const yAxis = (window.innerHeight / 2 - e.pageY) / 30;
+                card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+
+            cardContainer.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        }
+
+    </script>
+</body>
+</html>
+
